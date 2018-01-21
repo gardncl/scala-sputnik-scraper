@@ -9,7 +9,7 @@ object Dependencies {
     val scalalogging = "3.7.2"
     val scalatest = "3.0.1"
     val akka = "2.5.8"
-    val scrape = "0.4.0"
+    val scrape = "2.1.0"
     val slick = "3.2.1"
     val slickpg = "0.15.3"
   }
@@ -21,7 +21,8 @@ object Dependencies {
   )
 
   val scrape = Seq(
-    "io.bfil" %% "scalescrape" % v.scrape
+    "net.ruippeixotog" %% "scala-scraper" % v.scrape
   )
+
   lazy val allDeps = akka ++ scrape
 }

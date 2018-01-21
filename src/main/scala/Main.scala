@@ -1,36 +1,69 @@
-import akka.actor.{ActorSystem, Props}
-import io.bfil.scalescrape.actor.ScrapingActor
+import net.ruippeixotog.scalascraper.browser.JsoupBrowser
+import net.ruippeixotog.scalascraper.dsl.DSL.Extract._
+import net.ruippeixotog.scalascraper.dsl.DSL._
+import org.joda.time.LocalDate
+import org.joda.time.format.DateTimeFormat
 
 object Main extends App {
+  val scraper = new ExampleScraper
+  val albumId = 200
+  val doc = scraper.parse("https://www.sputnikmusic.com/soundoff.php?albumid=200")
 
-  val system = ActorSystem("HelloSystem")
-  // default Actor constructor
-  val helloActor = system.actorOf(Props[ExampleScraper], name = "helloactor")
-  helloActor ! "hello"
-  helloActor ! "buenos dias"
+  val items = doc >> elementList("table").map(_ >> allText("tbody"))
+//  Rating.parse(items(40))
+  val filtered = items.filter(Rating.validLine).map(Rating.parse)
+  filtered.foreach(
+    println(_)
+  )
 }
 
+class ExampleScraper {
+  val browser = JsoupBrowser()
 
-class ExampleScraper extends ScrapingActor {
-
-  private val baseUrl = "https://www.sputnikmusic.com/"
-
-  override def receive: Receive = {
-    case _       => grabMainTitle(baseUrl)
+  def parse(url: String): browser.DocumentType = {
+    browser.get(url)
   }
+}
 
-  private def grabMainTitle(url: String) =
-    scrape {
-          get(url) { response =>
-            complete(doIt(response))
-          }
+case class Rating(rating: Double, username: String, date: Option[LocalDate])
+
+object Rating {
+  private val formatter = DateTimeFormat.forPattern("MMMddyy")
+
+  def parse(line: String): Rating = {
+    val split: Array[String] = line.split(" +")
+    val rating = split(0).toDouble
+    val name = split(2)
+    var date: Option[LocalDate] = Option.empty
+    if (split.length >= 7) {
+      val rawDate = split(4) + formatDay(split(5)) + split(6)
+      date = Some(formatter.parseLocalDate(rawDate))
     }
+    Rating(rating, name, date)
+  }
 
-  private def doIt(response: Any): Unit = {
-    println(response)
+  def validLine(line: String): Boolean = {
+    getRating(line) match {
+      case Some(_) => true
+      case None => false
+    }
+  }
+
+  private def formatDay(day: String): String = {
+    val dayOfMonth = day.dropRight(2)
+    dayOfMonth.length match {
+      case 1 => "0" + dayOfMonth
+      case _ => dayOfMonth
+    }
+  }
+
+  private def getRating(line: String): Option[Double] = {
+    val firstElement = line.split(" +")(0)
+    try {
+      Some(firstElement.toDouble)
+    } catch {
+      case _: Throwable => None
+    }
   }
 }
-
-
-
 
