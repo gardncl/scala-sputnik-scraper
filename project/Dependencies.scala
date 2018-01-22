@@ -3,12 +3,8 @@ import sbt._
 object Dependencies {
 
   object v {
-    val cats = "0.9.0"
-    val logback = "1.2.3"
-    val scalacheck = "1.13.4"
-    val scalalogging = "3.7.2"
-    val scalatest = "3.0.1"
     val akka = "2.5.8"
+    val migrations = "0.4.2"
     val scrape = "2.1.0"
     val slick = "3.2.1"
     val slickpg = "0.15.3"
@@ -24,5 +20,14 @@ object Dependencies {
     "net.ruippeixotog" %% "scala-scraper" % v.scrape
   )
 
-  lazy val allDeps = akka ++ scrape
+  val slick = Seq(
+    "org.postgresql" % "postgresql" % "42.1.4",
+    "io.github.nafg" %% "slick-migration-api" % v.migrations,
+    "com.typesafe.slick" %% "slick" % v.slick,
+    "com.typesafe.slick" %% "slick-hikaricp" % v.slick,
+    "com.github.tminglei" %% "slick-pg" % v.slickpg,
+    "com.github.tminglei" %% "slick-pg_joda-time" % v.slickpg
+  )
+
+  lazy val allDeps = akka ++ scrape ++ slick
 }

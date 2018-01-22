@@ -7,7 +7,7 @@ import org.joda.time.format.DateTimeFormat
 object Main extends App {
   val scraper = new ExampleScraper
   val albumId = 200
-  val doc = scraper.parse("https://www.sputnikmusic.com/soundoff.php?albumid=200")
+  val doc = scraper.parse("file:///Users/gardncl/dev/dev-projects/scala/sputnik-scraper/src/main/resources/example.html")
 
   val items = doc >> elementList("table").map(_ >> allText("tbody"))
 //  Rating.parse(items(40))
