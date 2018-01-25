@@ -7,10 +7,9 @@ import org.joda.time.format.DateTimeFormat
 object Main extends App {
   val scraper = new ExampleScraper
   val albumId = 200
-  val doc = scraper.parse("file:///Users/gardncl/dev/dev-projects/scala/sputnik-scraper/src/main/resources/example.html")
+  val doc = scraper.parse("https://www.sputnikmusic.com/soundoff.php?albumid=159")
 
   val items = doc >> elementList("table").map(_ >> allText("tbody"))
-//  Rating.parse(items(40))
   val filtered = items.filter(Rating.validLine).map(Rating.parse)
   filtered.foreach(
     println(_)
@@ -35,9 +34,16 @@ object Rating {
     val rating = split(0).toDouble
     val name = split(2)
     var date: Option[LocalDate] = Option.empty
-    if (split.length >= 7) {
-      val rawDate = split(4) + formatDay(split(5)) + split(6)
-      date = Some(formatter.parseLocalDate(rawDate))
+    val index = split.indexOf("|")
+    val ratingThere =  index + 1
+
+    if (split.length >= 7 && ratingThere > 0) {
+      val rawDate = split(ratingThere) + formatDay(split(ratingThere+1)) + split(ratingThere+2)
+      try {
+        date = Some(formatter.parseLocalDate(rawDate))
+      } catch {
+        case _: Throwable => throw new RuntimeException("Could not parse: "+line)
+      }
     }
     Rating(rating, name, date)
   }

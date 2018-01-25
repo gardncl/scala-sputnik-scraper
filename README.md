@@ -8,5 +8,25 @@
 
  These are just a few of many questions I have regarding the data on Sputnik Music and as I dig into it further I'm sure I will discover more questions.
 
+Example parse from a page:
+```scala
+Rating(4.5,Mastodon_2007,Some(2007-08-20))
+Rating(4.0,Prometherion,Some(2007-08-12))
+Rating(4.5,Racinette,Some(2007-08-12))
+Rating(3.5,EvilFiek,Some(2007-08-09))
+Rating(4.0,OpethFreak,Some(2007-08-08))
+Rating(3.0,Goku,Some(2007-08-08))
+Rating(5.0,dhowns,Some(2007-07-31))
+Rating(4.5,teamsleep698,Some(2007-03-29))
+Rating(5.0,entruce,Some(2006-04-04))
+Rating(4.0,Thor,Some(2005-08-31))
+Rating(4.0,BTBAM1390,None)
+Rating(4.0,Mulciber,None)
+Rating(4.5,Kye,None)
+Rating(4.5,mexirocker666,None)
+Rating(4.0,amcmillon,None)
+Rating(3.5,HangEmHigh,None)
+```
+
 [Sputnik Music]:https://www.sputnikmusic.com/
 [my profile]:https://www.sputnikmusic.com/user/gardncl
