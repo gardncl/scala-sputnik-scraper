@@ -8,6 +8,7 @@ object Dependencies {
     val scrape = "2.1.0"
     val slick = "3.2.1"
     val slickpg = "0.15.3"
+    val postgresql = "42.1.4"
   }
 
   val akka = Seq(
@@ -21,7 +22,7 @@ object Dependencies {
   )
 
   val slick = Seq(
-    "org.postgresql" % "postgresql" % "42.1.4",
+    "org.postgresql" % "postgresql" % v.postgresql,
     "io.github.nafg" %% "slick-migration-api" % v.migrations,
     "com.typesafe.slick" %% "slick" % v.slick,
     "com.typesafe.slick" %% "slick-hikaricp" % v.slick,

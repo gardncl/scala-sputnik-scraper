@@ -1,20 +1,47 @@
 package migrations
 
-object Migrator extends {
+import akka.Done
+import slick.jdbc.PostgresProfile.api._
 
-//  implicit val dialect = new
-//
-//  val init =
-//    TableMigration(myTable)
-//      .create
-//      .addColumns(_.col1, _.col2)
-//      .addIndexes(_.index1)
-//      .renameColumn(_.col03, "col3")
-//  val seed =
-//    SqlMigration("insert into myTable (col1, col2) values (10, 20)")
-//
-//  val migration = init & seed
-//
-//  db.run(migration())
-//  private val migrations: List[Migration] = ???
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
+
+object Migrator extends {
+  def run(migrationName: String)(implicit ec: ExecutionContext,
+                                 db: Database): Future[Done] =
+    migrations
+      .find(_.name == migrationName)
+      .getOrElse(throw new IllegalArgumentException(
+        s"migration with name $migrationName not found"))
+      .run
+      .andThen {
+        case Success(false) =>
+          println(s"$migrationName already applied; skipping")
+      }
+      .map { _ =>
+        Done
+      }
+
+  def runAll(implicit ec: ExecutionContext, db: Database): Future[Done] = {
+    def runMigrationWithPrint(migrationName: String,
+                              status: Future[Boolean]): Future[Done] =
+      status
+        .andThen {
+          case Success(true) =>
+            println(s"Running migration $migrationName")
+        }
+        .map { _ =>
+          Done
+        }
+    migrations.foldLeft(Future(Done): Future[Done])(
+      (acc: Future[Done], m: Migration) =>
+        acc.flatMap(_ => runMigrationWithPrint(m.name, m.run)))
+  }
+
+  def initdb(implicit db: Database): Future[Any] =
+    db.run(
+      sqlu"CREATE TABLE migrations (name VARCHAR(255))"
+    )
+
+  private val migrations: List[Migration] = ???
 }
