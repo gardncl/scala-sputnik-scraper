@@ -1,5 +1,7 @@
 import Dependencies._
 
+enablePlugins(SbtNativePackager)
+
 name := "sputnik-scraper"
 
 version := "0.1"
