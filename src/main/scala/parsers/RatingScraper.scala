@@ -14,11 +14,7 @@ object RatingScraper {
   def parseWholePage(url: String): List[Rating] = {
     val doc = browser.get(url)
     val items = doc >> elementList("table").map(_ >> allText("tbody"))
-    val filtered = items.filter(validLine)
-    filtered.foreach {
-      println(_)
-    }
-    filtered.map(parseLineToRating)
+    items.filter(validLine).map(parseLineToRating)
   }
 
   private def parseLineToRating(line: String): Rating = {

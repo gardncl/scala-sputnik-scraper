@@ -43,5 +43,7 @@ object Migrator extends {
       sqlu"CREATE TABLE migrations (name VARCHAR(255))"
     )
 
-  private val migrations: List[Migration] = ???
+  private val migrations: List[Migration] = List(
+    CreateProfileTable
+  )
 }
