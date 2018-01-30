@@ -6,6 +6,7 @@ object Dependencies {
     val akka = "2.5.8"
     val migrations = "0.4.2"
     val scrape = "2.1.0"
+    val scopt = "3.6.0"
     val slick = "3.2.1"
     val slickpg = "0.15.3"
     val postgresql = "42.1.4"
@@ -15,6 +16,10 @@ object Dependencies {
     "com.typesafe.akka" %% "akka-actor" % v.akka,
     "com.typesafe.akka" %% "akka-slf4j" % v.akka,
     "com.typesafe.akka" %% "akka-stream" % v.akka
+  )
+
+  val runner = Seq(
+    "com.github.scopt" %% "scopt" % v.scopt
   )
 
   val scrape = Seq(
@@ -30,5 +35,5 @@ object Dependencies {
     "com.github.tminglei" %% "slick-pg_joda-time" % v.slickpg
   )
 
-  lazy val allDeps = akka ++ scrape ++ slick
+  lazy val allDeps = akka ++ runner ++ scrape ++ slick
 }

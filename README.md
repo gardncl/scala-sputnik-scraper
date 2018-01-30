@@ -30,3 +30,5 @@ Rating(3.5,HangEmHigh,None)
 
 [Sputnik Music]:https://www.sputnikmusic.com/
 [my profile]:https://www.sputnikmusic.com/user/gardncl
+
+[![Build Status](https://travis-ci.org/tbeede/truenews.svg?branch=master)](https://travis-ci.org/tbeede/truenews)
