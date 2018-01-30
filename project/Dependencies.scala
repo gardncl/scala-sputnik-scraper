@@ -10,6 +10,7 @@ object Dependencies {
     val slick = "3.2.1"
     val slickpg = "0.15.3"
     val postgresql = "42.1.4"
+    val logging = "1.1.3"
   }
 
   val akka = Seq(
@@ -35,5 +36,9 @@ object Dependencies {
     "com.github.tminglei" %% "slick-pg_joda-time" % v.slickpg
   )
 
-  lazy val allDeps = akka ++ runner ++ scrape ++ slick
+  val logging = Seq(
+    "ch.qos.logback" % "logback-classic" % v.logging
+  )
+
+  lazy val allDeps = akka ++ runner ++ scrape ++ slick ++ logging
 }
