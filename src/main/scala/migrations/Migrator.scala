@@ -44,6 +44,9 @@ object Migrator extends {
     )
 
   private val migrations: List[Migration] = List(
-    CreateProfileTable
+    CreateProfiles,
+    CreateBands,
+    CreateAlbums,
+    CreateRatings
   )
 }

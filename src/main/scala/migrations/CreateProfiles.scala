@@ -4,9 +4,10 @@ import slick.migration.api.{PostgresDialect, TableMigration}
 import io.SlickProfile.api._
 import org.joda.time.LocalDate
 
-object CreateProfileTable extends Migration {
+object CreateProfiles extends Migration {
   implicit val dialect = new PostgresDialect
-  override val name: String = "CreateProfileTable"
+
+  override val name: String = "CreateProfiles"
   override val migration = TableMigration(TableQuery[Profiles]).create
     .addColumns(_.id, _.userName, _.joinedDate)
     .addIndexes(_.userNameIndex)
@@ -18,9 +19,8 @@ object CreateProfileTable extends Migration {
 
     def joinedDate = column[LocalDate]("joined_date")
 
-    def userNameIndex = index("user_name_index", userName)
+    def userNameIndex = index("profiles_user_name_index", userName)
 
     override def * = ()
   }
-
 }
