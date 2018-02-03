@@ -1,5 +1,6 @@
 package migrations
 
+import gardncl.Migration
 import slick.migration.api.{PostgresDialect, TableMigration}
 import io.SlickProfile.api._
 import org.joda.time.LocalDate

@@ -1,4 +1,4 @@
-package migrations
+package gardncl
 
 import slick.dbio.DBIO
 import slick.jdbc.PostgresProfile.api._

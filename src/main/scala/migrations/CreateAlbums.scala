@@ -2,7 +2,8 @@ package migrations
 
 import io.SlickProfile.api._
 import org.joda.time.Years
-import slick.migration.api.{PostgresDialect, TableMigration}
+import slick.migration.api.{ PostgresDialect, TableMigration}
+import gardncl._
 
 object CreateAlbums extends Migration {
   implicit val dialect = new PostgresDialect
