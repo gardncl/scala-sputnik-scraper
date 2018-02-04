@@ -1,6 +1,5 @@
 package parsers
 
-import akka.stream.scaladsl.Flow
 import io.Rating
 import net.ruippeixotog.scalascraper.browser.JsoupBrowser
 import net.ruippeixotog.scalascraper.dsl.DSL._

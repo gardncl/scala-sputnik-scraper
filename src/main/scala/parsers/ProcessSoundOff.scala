@@ -1,9 +1,8 @@
 package parsers
 
-import akka.stream.scaladsl.Flow
 import net.ruippeixotog.scalascraper.browser.JsoupBrowser
-import net.ruippeixotog.scalascraper.scraper.ContentExtractors.{allText, elementList}
 import net.ruippeixotog.scalascraper.dsl.DSL._
+import net.ruippeixotog.scalascraper.scraper.ContentExtractors.{allText, elementList}
 
 object ProcessSoundOff {
   private val browser =

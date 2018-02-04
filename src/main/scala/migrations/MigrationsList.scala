@@ -2,7 +2,7 @@ package migrations
 
 import gardncl.{Migration, Migrator}
 
-object Migrator extends Migrator {
+object MigrationsList extends Migrator {
   override val migrations: List[Migration] = List(
     CreateProfiles,
     CreateBands,

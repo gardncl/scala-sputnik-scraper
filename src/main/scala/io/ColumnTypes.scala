@@ -2,7 +2,7 @@ package io
 
 
 import io.SlickProfile.api._
-import org.joda.time.{LocalDate, Years}
+import org.joda.time.Years
 
 trait ColumnTypes {
 

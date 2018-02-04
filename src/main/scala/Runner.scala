@@ -2,15 +2,15 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import io.SlickProfile.api.Database
-import migrations.Migrator
+import migrations.MigrationsList
 import streams.StreamParser
 
 import scala.concurrent.{ExecutionContext, Future}
 
 object Runner extends App {
-  main
+  main()
 
-  def main = {
+  def main() = {
     implicit val system: ActorSystem = ActorSystem()
     implicit val materializer: ActorMaterializer = ActorMaterializer()
     implicit val database: Database =
@@ -25,8 +25,8 @@ object Runner extends App {
 
   def initDb(implicit ec: ExecutionContext,
              database: Database): Future[Done] = {
-    Migrator.initdb
-    Migrator.runAll
+    MigrationsList.initdb
+    MigrationsList.runAll
   }
 }
 
