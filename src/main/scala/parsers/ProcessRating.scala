@@ -2,20 +2,14 @@ package parsers
 
 import akka.stream.scaladsl.Flow
 import io.Rating
-import net.ruippeixotog.scalascraper.browser.JsoupBrowser
-import net.ruippeixotog.scalascraper.dsl.DSL._
-import net.ruippeixotog.scalascraper.scraper.ContentExtractors.{allText, elementList}
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 
-object RatingScraper {
-  private val browser = JsoupBrowser()
+object ProcessRating {
   private val formatter = DateTimeFormat.forPattern("MMMddyy")
 
-  def parseWholePage(url: String): List[Rating] = {
-    val doc = browser.get(url)
-    val items = doc >> elementList("table").map(_ >> allText("tbody"))
-    items.filter(validLine).map(parseLineToRating)
+  def apply = {
+    Flow[String].map(parseLineToRating)
   }
 
   private def parseLineToRating(line: String): Rating = {
@@ -40,27 +34,11 @@ object RatingScraper {
     Rating(rating, name, date)
   }
 
-  private def validLine(line: String): Boolean = {
-    getRating(line) match {
-      case Some(_) => true
-      case None => false
-    }
-  }
-
   private def formatDay(day: String): String = {
     val dayOfMonth = day.dropRight(2)
     dayOfMonth.length match {
       case 1 => "0" + dayOfMonth
       case _ => dayOfMonth
-    }
-  }
-
-  private def getRating(line: String): Option[Double] = {
-    val firstElement = line.split(" +")(0)
-    try {
-      Some(firstElement.toDouble)
-    } catch {
-      case _: Throwable => None
     }
   }
 }
