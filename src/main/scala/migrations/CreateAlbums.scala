@@ -16,9 +16,11 @@ object CreateAlbums extends Migration {
   class Albums(tag: Tag) extends Table[Unit](tag, "albums") {
     import io.ColumnTypes._
 
-    def id = column[Long]("id", O.PrimaryKey)
+    def id = column[Int]("id", O.PrimaryKey)
 
-    def bandId = column[Long]("band_id")
+    def soundOffId = column[Int]("sound_off_id")
+
+    def bandId = column[Int]("band_id")
 
     def releaseYear = column[Years]("release_year")
 

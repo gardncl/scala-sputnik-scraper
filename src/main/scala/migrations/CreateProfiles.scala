@@ -14,7 +14,7 @@ object CreateProfiles extends Migration {
     .addIndexes(_.userNameIndex)
 
   class Profiles(tag: Tag) extends Table[Unit](tag, "profiles") {
-    def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
+    def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
 
     def userName = column[String]("user_name")
 

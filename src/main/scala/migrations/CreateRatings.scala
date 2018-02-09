@@ -12,13 +12,16 @@ object CreateRatings extends Migration {
 
   override val name: String = "CreateRatings"
   override val migration = TableMigration(TableQuery[Ratings])
+    .create
+    .addColumns(_.profileId, _.albumId, _.rating, _.date)
+    .addForeignKeys(_.profilesForeignKey, _.albumsForeignKey)
 
   class Ratings(tag: Tag) extends Table[Unit](tag, "ratings") {
-    def profileId = column[Long]("profile_id")
+    def profileId = column[Int]("profile_id")
 
-    def albumId = column[Long]("album_id")
+    def albumId = column[Int]("album_id")
 
-    def rating = column[Float]("rating")
+    def rating = column[Double]("rating")
 
     def date = column[LocalDate]("date")
 

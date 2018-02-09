@@ -1,6 +1,6 @@
 package parsers
 
-import io.Rating
+import models.{AlbumId, Rating}
 import net.ruippeixotog.scalascraper.browser.JsoupBrowser
 import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.scraper.ContentExtractors.{allText, elementList}
@@ -36,7 +36,8 @@ object RatingScraper {
         case _: Throwable => throw new RuntimeException("Could not parse: " + line)
       }
     }
-    Rating(rating, name, date)
+    //GET NAME TO ID
+    Rating(AlbumId(1), 1, rating, date)
   }
 
   private def validLine(line: String): Boolean = {

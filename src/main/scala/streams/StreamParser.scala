@@ -1,41 +1,61 @@
 package streams
 
+import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.stream._
 import akka.stream.scaladsl._
-import io.Rating
+import models.{AlbumId, Rating}
 import parsers.{ProcessRating, ProcessSoundOff}
 
+import scala.concurrent.{ExecutionContext, Future}
 
 object StreamParser {
 
-  def main(implicit sys: ActorSystem,
-           mat: Materializer): Unit = {
-    val g = RunnableGraph.fromGraph(GraphDSL.create() {
-      implicit builder =>
-        import GraphDSL.Implicits._
+  def main(albumId: AlbumId)(implicit sys: ActorSystem,
+                             mat: Materializer): Unit = {
+    val g = RunnableGraph.fromGraph(GraphDSL.create() { implicit builder =>
+      import GraphDSL.Implicits._
 
-        // Source
-        val A: Outlet[String] = builder
-          .add(Source.fromIterator(
-            () => ProcessSoundOff.apply(1640)))
-          .out
+      // Source(s)
+      val createTuples: Outlet[(String, AlbumId)] = builder
+        .add(Source.fromIterator(() => ProcessSoundOff.getLines(albumId)))
+        .out
 
-        // Flow
-        val parseToRating: FlowShape[String, Rating] =
-          builder
-            .add(ProcessRating.apply)
+      // Flow(s)
+      val parseToRating: FlowShape[(String, AlbumId), Rating] =
+        builder
+          .add(ProcessRating.apply)
 
-        // Sink
-        val printOut: Inlet[Any] =
-          builder
-            .add(Sink.foreach(println))
-            .in
+      // Sink(s)
+      val printOut: Inlet[Any] =
+        builder
+          .add(Sink.foreach(println))
+          .in
 
-        A ~> parseToRating ~> printOut
+      createTuples ~> parseToRating ~> printOut
 
-        ClosedShape
+      ClosedShape
     })
     g.run()
   }
+
+  def apply(albumId: AlbumId)(implicit sys: ActorSystem,
+                              mat: Materializer,
+                              ec: ExecutionContext): Future[Seq[Rating]] =
+    ratingsSource(albumId).runWith(Sink.seq[Rating])
+
+  def ratingsSource(albumId: AlbumId)(
+      implicit sys: ActorSystem,
+      mat: Materializer,
+      ec: ExecutionContext): Source[Rating, NotUsed] =
+    createSource(albumId).mapAsync(5) { tuple =>
+      Future {
+        ProcessRating.parseLineToRating(tuple)
+      }
+    }
+
+  private def createSource(
+      albumId: AlbumId): Source[(String, AlbumId), NotUsed] =
+    Source.fromIterator(() => ProcessSoundOff.getLines(albumId))
+
 }

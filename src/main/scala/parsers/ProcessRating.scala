@@ -1,18 +1,20 @@
 package parsers
 
+import akka.NotUsed
 import akka.stream.scaladsl.Flow
-import io.Rating
+import models.{AlbumId, Rating}
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
 
 object ProcessRating {
   private val formatter = DateTimeFormat.forPattern("MMMddyy")
 
-  def apply = {
-    Flow[String].map(parseLineToRating)
+  def apply: Flow[(String, AlbumId), Rating, NotUsed] = {
+    Flow[(String, AlbumId)].map(parseLineToRating)
   }
 
-  private def parseLineToRating(line: String): Rating = {
+  def parseLineToRating(tuple: (String, AlbumId)): Rating = {
+    val line = tuple._1
     val split: Array[String] = line.split(" +")
     val rating = split(0).toDouble
     val name = rating match {
@@ -31,7 +33,8 @@ object ProcessRating {
         case _: Throwable => throw new RuntimeException("Could not parse: " + line)
       }
     }
-    Rating(rating, name, date)
+    //GET ID FOR NAME
+    Rating(AlbumId(1), 1, rating, date)
   }
 
   private def formatDay(day: String): String = {

@@ -1,8 +1,11 @@
 package parsers
 
+import akka.NotUsed
+import akka.stream.scaladsl.Flow
+import models.AlbumId
 import net.ruippeixotog.scalascraper.browser.JsoupBrowser
 import net.ruippeixotog.scalascraper.dsl.DSL._
-import net.ruippeixotog.scalascraper.scraper.ContentExtractors.{allText, elementList}
+import net.ruippeixotog.scalascraper.scraper.ContentExtractors._
 
 object ProcessSoundOff {
   private val browser =
@@ -10,12 +13,20 @@ object ProcessSoundOff {
   private val soundoffUrl =
     "https://www.sputnikmusic.com/soundoff.php?albumid="
 
-  def apply(albumId: Int): Iterator[String] = {
-    val doc = browser.get(soundoffUrl + albumId)
+  def apply: Flow[AlbumId, Iterator[(String, AlbumId)], NotUsed] =
+    Flow[AlbumId].map(getLines)
+
+  /*
+   * Insert the band into the database and then pass all the
+   * unprocessed lines with
+   */
+  def getLines(albumId: AlbumId): Iterator[(String, AlbumId)] = {
+    val doc = browser.get(soundoffUrl + albumId.value)
     val lines = doc >> elementList("table")
       .map(_ >> allText("tbody"))
     lines
       .filter(validLine)
+      .map(_ -> albumId)
       .toIterator
   }
 

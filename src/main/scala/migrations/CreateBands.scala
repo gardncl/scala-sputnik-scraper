@@ -13,7 +13,7 @@ object CreateBands extends Migration {
     .addIndexes(_.nameIndex)
 
   class Bands(tag: Tag) extends Table[Unit](tag, "bands") {
-    def id = column[Long]("id", O.PrimaryKey)
+    def id = column[Int]("id", O.PrimaryKey)
 
     def name = column[String]("name")
 
