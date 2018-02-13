@@ -3,6 +3,7 @@ package migrations
 
 import gardncl.Migration
 import io.SlickProfile.api._
+import models.{ProfileId, SoundOffId}
 import org.joda.time.LocalDate
 import slick.migration.api.{PostgresDialect, TableMigration}
 
@@ -13,17 +14,17 @@ object CreateRatings extends Migration {
   override val name: String = "CreateRatings"
   override val migration = TableMigration(TableQuery[Ratings])
     .create
-    .addColumns(_.profileId, _.albumId, _.rating, _.date)
+    .addColumns(_.profileId, _.soundOffId, _.rating, _.date)
     .addForeignKeys(_.profilesForeignKey, _.albumsForeignKey)
 
   class Ratings(tag: Tag) extends Table[Unit](tag, "ratings") {
-    def profileId = column[Int]("profile_id")
+    def profileId = column[ProfileId]("profile_id")
 
-    def albumId = column[Int]("album_id")
+    def soundOffId = column[SoundOffId]("sound_off_id")
 
     def rating = column[Double]("rating")
 
-    def date = column[LocalDate]("date")
+    def date = column[Option[LocalDate]]("date")
 
     def profilesForeignKey =
       foreignKey("ratings_profiles_fkey",
@@ -34,8 +35,8 @@ object CreateRatings extends Migration {
 
     def albumsForeignKey =
       foreignKey("ratings_albums_fkey",
-        albumId,
-        TableQuery[CreateAlbums.Albums])(_.id,
+        soundOffId,
+        TableQuery[CreateAlbums.Albums])(_.soundOffId,
         onUpdate = ForeignKeyAction.Cascade,
         onDelete = ForeignKeyAction.Cascade)
 

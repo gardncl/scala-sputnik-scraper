@@ -3,6 +3,7 @@ package migrations
 import gardncl.Migration
 import slick.migration.api.{PostgresDialect, TableMigration}
 import io.SlickProfile.api._
+import models.ProfileId
 import org.joda.time.LocalDate
 
 object CreateProfiles extends Migration {
@@ -14,11 +15,11 @@ object CreateProfiles extends Migration {
     .addIndexes(_.userNameIndex)
 
   class Profiles(tag: Tag) extends Table[Unit](tag, "profiles") {
-    def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+    def id = column[ProfileId]("id", O.PrimaryKey, O.AutoInc)
 
-    def userName = column[String]("user_name")
+    def userName = column[String]("user_name", O.Unique)
 
-    def joinedDate = column[LocalDate]("joined_date")
+    def joinedDate = column[Option[LocalDate]]("joined_date")
 
     def userNameIndex = index("profiles_user_name_index", userName)
 

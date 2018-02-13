@@ -1,6 +1,6 @@
 package parsers
 
-import models.{AlbumId, Rating}
+import models.{AlbumId, ProfileId, Rating, SoundOffId}
 import net.ruippeixotog.scalascraper.browser.JsoupBrowser
 import net.ruippeixotog.scalascraper.dsl.DSL._
 import net.ruippeixotog.scalascraper.scraper.ContentExtractors.{allText, elementList}
@@ -37,7 +37,7 @@ object RatingScraper {
       }
     }
     //GET NAME TO ID
-    Rating(AlbumId(1), 1, rating, date)
+    Rating(SoundOffId(1), ProfileId(1), rating, date)
   }
 
   private def validLine(line: String): Boolean = {

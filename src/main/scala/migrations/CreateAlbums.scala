@@ -2,34 +2,27 @@ package migrations
 
 import io.SlickProfile.api._
 import org.joda.time.Years
-import slick.migration.api.{ PostgresDialect, TableMigration}
+import slick.migration.api.{PostgresDialect, TableMigration}
 import gardncl._
+import io.ColumnTypes
+import models.{AlbumId, BandId, SoundOffId}
 
 object CreateAlbums extends Migration {
   implicit val dialect = new PostgresDialect
 
   override val name: String = "CreateAlbums"
   override val migration = TableMigration(TableQuery[Albums]).create
-    .addColumns(_.id, _.bandId, _.releaseYear)
-    .addForeignKeys(_.bandsForeignKey)
+    .addColumns(_.id, _.soundOffId, _.bandId, _.releaseYear)
 
-  class Albums(tag: Tag) extends Table[Unit](tag, "albums") {
-    import io.ColumnTypes._
+  class Albums(tag: Tag) extends Table[Unit](tag, "albums") with ColumnTypes {
 
-    def id = column[Int]("id", O.PrimaryKey)
+    def id = column[Option[AlbumId]]("id")
 
-    def soundOffId = column[Int]("sound_off_id")
+    def soundOffId = column[SoundOffId]("sound_off_id", O.PrimaryKey)
 
-    def bandId = column[Int]("band_id")
+    def bandId = column[Option[BandId]]("band_id")
 
-    def releaseYear = column[Years]("release_year")
-
-    def bandsForeignKey =
-      foreignKey("albums_bands_fkey",
-        id,
-        TableQuery[Albums])(_.id,
-        onUpdate = ForeignKeyAction.Cascade,
-        onDelete = ForeignKeyAction.Cascade)
+    def releaseYear = column[Option[Years]]("release_year")
 
     override def * = ()
   }

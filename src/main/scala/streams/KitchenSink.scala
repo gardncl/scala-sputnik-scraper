@@ -1,13 +1,15 @@
 package streams
 
-import akka.{Done, NotUsed}
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.stream.scaladsl._
-import models.{AlbumId, Rating}
+import akka.{Done, NotUsed}
+import io.SlickProfile.api._
+import io.{Albums, Profiles, Ratings}
+import models.{Profile, Rating, SoundOffId}
+import parsers.{ProcessRating, ProcessSoundOff}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Random
 
 object KitchenSink {
 
@@ -16,53 +18,85 @@ object KitchenSink {
 
   private val threads = 10
   private val batchSize = 10
-  private val seconds = 10
 
   def apply()(implicit sys: ActorSystem,
               mat: Materializer,
-              ec: ExecutionContext): RunnableGraph[NotUsed] =
-    Source(0 to 280)
-      .map(AlbumId.apply)
+              ec: ExecutionContext,
+              db: Database): RunnableGraph[NotUsed] =
+    Source(40 to 280)
+      .map(SoundOffId.apply)
       .grouped(batchSize)
       .mapAsync(threads) {
         writeAlbumToDb
       }
       .mapConcat(identity)
-      .to(Sink.combine(insertRatings, insertArtistMetadata)(
-        Broadcast[AlbumId](_)))
+      .to(insertRatings)
+//      .to(Sink.combine(insertArtistMetadata, insertRatings)(
+//        Broadcast[SoundOffId](_)))
 
-  private def writeAlbumToDb(albums: Seq[AlbumId])(implicit ec: ExecutionContext): Future[Seq[AlbumId]] =
-    Future {
-      val random = math.abs(Random.nextLong() % seconds)
-      println(s"Sleeping: $random")
-      Thread.sleep(random)
-      println(s"Writing ${albums.length} to db")
+  private def writeAlbumToDb(albums: Seq[SoundOffId])(implicit ec: ExecutionContext, db: Database): Future[Seq[SoundOffId]] =
+    for {
+      _ <- Future.successful(println(s"Entering ${albums.length} albums to the database"))
+      _ <- db.run(DBIO.sequence(albums.map(Albums.insertAlbumBySoundOffId)))
+    } yield {
       albums
     }
 
-  private def getRatings(albumId: AlbumId): Future[Seq[Rating]] =
-    Future.successful(Seq(Rating(albumId, 1, 5, None)))
+  private def getRatings(lineAndId: (String, SoundOffId)): Future[(Rating, Profile)] =
+    Future.successful(ProcessRating.parseLineToRatingAndProfile(lineAndId))
 
-  private def writeToDb(rating: Rating)(implicit ec: ExecutionContext): Future[Done] =
-    Future {
-      Thread.sleep(Random.nextLong() % seconds)
-      println(s"Writing $rating to db")
+  private def soundOffIdToLines(soundOffId: SoundOffId): Future[Seq[(String, SoundOffId)]] =
+    Future.successful{
+      println(s"Parsing $soundOffId")
+      ProcessSoundOff.getLines(soundOffId)
+    }
+
+  private def writeRatingsToDb(ratings: Seq[Rating])(implicit ec: ExecutionContext, db: Database): Future[Done] =
+    for {
+      _ <- Future.successful(ratings.map(println))
+      _ <- db.run(DBIO.sequence(ratings.map(Ratings.insert)))
+    } yield {
       Done
     }
 
-  private def insertRatings(implicit ec: ExecutionContext): Sink[AlbumId, NotUsed] =
-    Flow[AlbumId]
+  private def writeProfilesToDb(ratingAndProfile: Seq[(Rating, Profile)])(implicit ec: ExecutionContext, db: Database): Future[Seq[Rating]] = {
+    ratingAndProfile.map(_._1).foreach(println)
+    for {
+      values <- db.run(DBIO.sequence(ratingAndProfile.map(insertProfileAndGetRating)))
+    } yield {
+      values
+    }
+  }
+
+
+  private def insertProfileAndGetRating(ratingAndProfile: (Rating, Profile))(implicit ec: ExecutionContext, db: Database): DBIO[Rating] = {
+    for {
+      profileId <- Profiles.insertAndReturnId(ratingAndProfile._2)
+    } yield {
+      Rating(ratingAndProfile._1.soundOffId,profileId,ratingAndProfile._1.rating,ratingAndProfile._1.date)
+    }
+  }
+
+  private def insertRatings(implicit ec: ExecutionContext, db: Database): Sink[SoundOffId, NotUsed] =
+    Flow[SoundOffId]
       .mapAsync(threads) {
-        getRatings
+          soundOffIdToLines
       }
       .mapConcat(identity)
       .mapAsync(threads) {
-        writeToDb
+        getRatings
+      }
+      .grouped(batchSize)
+      .mapAsync(threads) {
+        writeProfilesToDb
+      }
+      .mapAsync(threads) {
+        writeRatingsToDb
       }
       .to(Sink.ignore)
 
-  private def insertArtistMetadata: Sink[AlbumId, NotUsed] =
-    Flow[AlbumId]
+  private def insertArtistMetadata: Sink[SoundOffId, NotUsed] =
+    Flow[SoundOffId]
       .map { album =>
         println(s"Inserting artist metadata $album")
         album
