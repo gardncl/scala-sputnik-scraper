@@ -24,9 +24,17 @@ object Profiles {
   val query = TableQuery[Profiles]
 
   def insertAndReturnId(profile: Profile): DBIO[ProfileId] =
-    query.map(p => (p.userName, p.joinedDate))
+    query
+      .map(p => (p.userName, p.joinedDate))
       .returning(query.map(_.id))
       .+=((profile.userName, profile.joinedDate))
+
+  def doesUsernameExist(name: String): DBIO[Option[ProfileId]] =
+    query
+      .filter(_.userName === name)
+      .map(_.id)
+      .result
+      .headOption
 
   def insert(profile: Profile): DBIO[Int] =
     query += profile

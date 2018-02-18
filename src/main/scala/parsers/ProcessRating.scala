@@ -1,10 +1,11 @@
 package parsers
 
-import akka.NotUsed
-import akka.stream.scaladsl.Flow
+import io.ParseException
 import models.{Profile, ProfileId, Rating, SoundOffId}
 import org.joda.time.LocalDate
 import org.joda.time.format.DateTimeFormat
+
+import scala.util.matching.Regex
 
 object ProcessRating {
   private val formatter = DateTimeFormat.forPattern("MMMddyy")
@@ -13,10 +14,7 @@ object ProcessRating {
     val line = tuple._1
     val split: Array[String] = line.split(" +")
     val rating = split(0).toDouble
-    val name = rating match {
-      case 0 => split(1)
-      case _ => split(2)
-    }
+    val name = getName(line)
     var date: Option[LocalDate] = Option.empty
     val index = split.indexOf("|")
     val ratingThere = index + 1
@@ -34,6 +32,32 @@ object ProcessRating {
     val ratingObj = Rating(tuple._2, profileId, rating, date)
     println(ratingObj)
     (ratingObj, Profile(profileId, name, None))
+  }
+
+  /**
+    * Change to use cleaner regex.
+    */
+   private def getName(line: String): String = {
+    var nameOption: Option[String] = None
+    val regex1 = new Regex("(?<=awful|very poor|poor|average|good|great|excellent|superb|classic).*")
+    val regex2 = new Regex("(?<=awful|very poor|poor|average|good|great|excellent|superb|classic).*(?=\\|)")
+    val regex3 = new Regex(".*(?=CONTRIBUTOR|STAFF|EMERITUS)")
+
+    if (!line.contains('|')) {
+      nameOption = regex1 findFirstIn line
+    } else if (line.contains("CONTRIBUTOR") || line.contains("STAFF")) {
+      val intermediateName = regex1 findFirstIn line
+      nameOption = regex3 findFirstIn intermediateName.getOrElse(
+        throw ParseException(s"Failed to parse:\n$line")
+      )
+    } else {
+      nameOption = regex2 findFirstIn line
+    }
+
+    nameOption match {
+      case Some(value) => value.trim
+      case None => throw ParseException(s"Failed to parse:\n$line")
+    }
   }
 
   private def formatDay(day: String): String = {

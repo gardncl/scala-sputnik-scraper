@@ -24,10 +24,13 @@ object ProcessSoundOff {
     val doc = browser.get(soundoffUrl + soundOffId.value)
     val lines = doc >> elementList("table")
       .map(_ >> allText("tbody"))
-    lines
+    val tuples = lines
       .filter(validLine)
       .map(_ -> soundOffId)
-      .toVector
+    lines.length match {
+      case 0 => tuples.toVector
+      case _ => tuples.drop(2).toVector
+    }
   }
 
   private def validLine(line: String): Boolean = {

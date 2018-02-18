@@ -11,7 +11,7 @@ import parsers.{ProcessRating, ProcessSoundOff}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-object KitchenSink {
+object StreamParser {
 
   type Seq[+A] = scala.collection.immutable.Seq[A]
   val Seq = scala.collection.immutable.Seq
@@ -31,8 +31,9 @@ object KitchenSink {
       }
       .mapConcat(identity)
       .to(insertRatings)
-//      .to(Sink.combine(insertArtistMetadata, insertRatings)(
-//        Broadcast[SoundOffId](_)))
+
+  //      .to(Sink.combine(insertArtistMetadata, insertRatings)(
+  //        Broadcast[SoundOffId](_)))
 
   private def writeAlbumToDb(albums: Seq[SoundOffId])(implicit ec: ExecutionContext, db: Database): Future[Seq[SoundOffId]] =
     for {
@@ -46,7 +47,7 @@ object KitchenSink {
     Future.successful(ProcessRating.parseLineToRatingAndProfile(lineAndId))
 
   private def soundOffIdToLines(soundOffId: SoundOffId): Future[Seq[(String, SoundOffId)]] =
-    Future.successful{
+    Future.successful {
       println(s"Parsing $soundOffId")
       ProcessSoundOff.getLines(soundOffId)
     }
@@ -59,6 +60,7 @@ object KitchenSink {
       Done
     }
 
+
   private def writeProfilesToDb(ratingAndProfile: Seq[(Rating, Profile)])(implicit ec: ExecutionContext, db: Database): Future[Seq[Rating]] = {
     ratingAndProfile.map(_._1).foreach(println)
     for {
@@ -68,19 +70,26 @@ object KitchenSink {
     }
   }
 
-
-  private def insertProfileAndGetRating(ratingAndProfile: (Rating, Profile))(implicit ec: ExecutionContext, db: Database): DBIO[Rating] = {
-    for {
-      profileId <- Profiles.insertAndReturnId(ratingAndProfile._2)
+  /**
+    * Checks if the profile already exists in the database to avoid duplicates.
+    */
+  private def insertProfileAndGetRating(ratingAndProfile: (Rating, Profile))
+                                       (implicit ec: ExecutionContext, db: Database): DBIO[Rating] = {
+    (for {
+      profileIdOption <- Profiles.doesUsernameExist(ratingAndProfile._2.userName)
+      profileId <- profileIdOption match {
+        case Some(id) => DBIO.successful(id)
+        case None => Profiles.insertAndReturnId(ratingAndProfile._2)
+      }
     } yield {
-      Rating(ratingAndProfile._1.soundOffId,profileId,ratingAndProfile._1.rating,ratingAndProfile._1.date)
-    }
+      Rating(ratingAndProfile._1.soundOffId, profileId, ratingAndProfile._1.rating, ratingAndProfile._1.date)
+    }).transactionally
   }
 
   private def insertRatings(implicit ec: ExecutionContext, db: Database): Sink[SoundOffId, NotUsed] =
     Flow[SoundOffId]
       .mapAsync(threads) {
-          soundOffIdToLines
+        soundOffIdToLines
       }
       .mapConcat(identity)
       .mapAsync(threads) {
