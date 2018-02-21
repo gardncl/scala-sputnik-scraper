@@ -5,6 +5,7 @@ object Dependencies {
   object v {
     val akka = "2.5.8"
     val migrations = "0.4.2"
+    val scalatest = "3.0.4"
     val scrape = "2.1.0"
     val scopt = "3.6.0"
     val shapeless = "2.3.3"
@@ -41,9 +42,14 @@ object Dependencies {
     "com.github.tminglei" %% "slick-pg_joda-time" % v.slickpg
   )
 
+  val test = Seq(
+    "org.scalatest" %% "scalatest" % v.scalatest % Test,
+    "com.typesafe.akka" %% "akka-stream-testkit" % v.akka % Test
+  )
+
   val logging = Seq(
     "ch.qos.logback" % "logback-classic" % v.logging
   )
 
-  lazy val allDeps = akka ++ runner ++ scrape ++ shapeless ++ slick ++ logging
+  lazy val allDeps = akka ++ runner ++ scrape ++ shapeless ++ slick ++ test ++ logging
 }

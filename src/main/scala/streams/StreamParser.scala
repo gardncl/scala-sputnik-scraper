@@ -16,14 +16,14 @@ object StreamParser {
   type Seq[+A] = scala.collection.immutable.Seq[A]
   val Seq = scala.collection.immutable.Seq
 
-  private val threads = 10
-  private val batchSize = 10
+  private val threads = 3
+  private val batchSize = 5
 
   def apply()(implicit sys: ActorSystem,
               mat: Materializer,
               ec: ExecutionContext,
               db: Database): RunnableGraph[NotUsed] =
-    Source(40 to 280)
+    Source(40 to 40)
       .map(SoundOffId.apply)
       .grouped(batchSize)
       .mapAsync(threads) {
@@ -48,8 +48,9 @@ object StreamParser {
 
   private def soundOffIdToLines(soundOffId: SoundOffId): Future[Seq[(String, SoundOffId)]] =
     Future.successful {
-      println(s"Parsing $soundOffId")
-      ProcessSoundOff.getLines(soundOffId)
+      val lines = ProcessSoundOff.getLines(soundOffId)
+      println(s"Parsed $soundOffId and got ${lines.length} lines")
+      lines
     }
 
   private def writeRatingsToDb(ratings: Seq[Rating])(implicit ec: ExecutionContext, db: Database): Future[Done] =

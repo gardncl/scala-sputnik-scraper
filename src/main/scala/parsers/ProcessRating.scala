@@ -19,33 +19,36 @@ object ProcessRating {
     val index = split.indexOf("|")
     val ratingThere = index + 1
 
+//    println(line)
+
     if (split.length >= 7 && ratingThere > 0) {
       val rawDate = split(ratingThere) + formatDay(split(ratingThere + 1)) + split(ratingThere + 2)
       try {
         date = Some(formatter.parseLocalDate(rawDate))
       } catch {
-        case _: Throwable => throw new RuntimeException("Could not parse: " + line)
+        case _: Throwable => new RuntimeException("Could not parse: " + line)
       }
     }
     //GET ID FOR NAME
     val profileId = ProfileId(-1)
     val ratingObj = Rating(tuple._2, profileId, rating, date)
-    println(ratingObj)
     (ratingObj, Profile(profileId, name, None))
   }
 
-  /**
-    * Change to use cleaner regex.
-    */
+    //TODO: Change to use single regex.
    private def getName(line: String): String = {
     var nameOption: Option[String] = None
     val regex1 = new Regex("(?<=awful|very poor|poor|average|good|great|excellent|superb|classic).*")
     val regex2 = new Regex("(?<=awful|very poor|poor|average|good|great|excellent|superb|classic).*(?=\\|)")
     val regex3 = new Regex(".*(?=CONTRIBUTOR|STAFF|EMERITUS)")
 
-    if (!line.contains('|')) {
+    if (!line.contains('|') && !(line.contains("CONTRIBUTOR")
+      || line.contains("STAFF")
+      || line.contains("EMERITUS"))) {
       nameOption = regex1 findFirstIn line
-    } else if (line.contains("CONTRIBUTOR") || line.contains("STAFF")) {
+    } else if (line.contains("CONTRIBUTOR")
+      || line.contains("STAFF")
+      || line.contains("EMERITUS")) {
       val intermediateName = regex1 findFirstIn line
       nameOption = regex3 findFirstIn intermediateName.getOrElse(
         throw ParseException(s"Failed to parse:\n$line")
