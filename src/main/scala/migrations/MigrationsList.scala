@@ -7,6 +7,7 @@ object MigrationsList extends Migrator {
     CreateProfiles,
     CreateBands,
     CreateAlbums,
-    CreateRatings
+    CreateRatings,
+    CreateGenres
   )
 }
